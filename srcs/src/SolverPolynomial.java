@@ -1,12 +1,11 @@
 package src;
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SolverPolynomial {
 
-//    private ArrayList<Integer> elements_degree2 = new ArrayList<Integer>();
-//    private ArrayList<Integer> elements_degree1 = new ArrayList<Integer>();
-//    private ArrayList<Integer> elements_degree0 = new ArrayList<Integer>();
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_GREEN = "\u001B[32m";
@@ -14,6 +13,7 @@ public class SolverPolynomial {
     public static final String ANSI_PURPLE = "\u001B[35m";
     private static final double ZERO = 0.0;
     DecimalFormat decimalFormat = new DecimalFormat("#.######");
+    private HashMap<Integer, Double> other_degree = new HashMap<>();
     private Double value_degree0;
     private Double value_degree1;
     private Double value_degree2;
@@ -46,11 +46,7 @@ public class SolverPolynomial {
             } else if (arg.contains("X^")) {
                 arg = arg.replace("X^", "");
                 try {
-                    Integer degree = arg.isEmpty() ? 1 : Integer.parseInt(arg);
-                    if (degree.doubleValue() > 2) {
-                        printError("Polynomial degree: " + degree + ".\nThe polynomial degree is strictly greater than 2, I can't solve.");
-                        return;
-                    }
+                    Integer degree = arg.isEmpty() ? 0 : Integer.parseInt(arg);
                     if (isRightSide)
                         multiplier *= -1;
                     addValueDegree(degree, multiplier);
@@ -59,6 +55,13 @@ public class SolverPolynomial {
                     printError("Не верный формат степени: " + arg + ".\nОжидается X^[0-2]");
                     return;
                 }
+            }
+        }
+        for (Map.Entry<Integer, Double> entry : other_degree.entrySet()) {
+            if (!entry.getValue().equals(0.0)) {
+                printError("Polynomial degree: " + entry.getKey() + ".");
+                printError("The polynomial degree is strictly greater than 2, I can't solve.");
+                return;
             }
         }
         initSuccess = true;
@@ -197,6 +200,10 @@ public class SolverPolynomial {
             case 0: value_degree0 += multiplier; break;
             case 1: value_degree1 += multiplier; break;
             case 2: value_degree2 += multiplier; break;
+            default:
+                Double value = other_degree.get(degree) == null ? 0.0 : other_degree.get(degree);
+                other_degree.put(degree, value + multiplier);
+                break;
         }
     }
 

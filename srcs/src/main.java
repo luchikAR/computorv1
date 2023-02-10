@@ -58,9 +58,16 @@ public class main {
         solverPolynomial.printReducedForm();
         solverPolynomial.getSolution();
 
-        System.out.println("---------TEST12_check---------");
+        System.out.println("-------TEST12_check_last------");
         solverPolynomial = new SolverPolynomial("5 * X^0 + 1 * X^3 = 4 * X^0 + 2 * X^1 + 1 * X^3");
         solverPolynomial.printReducedForm();
+        System.out.println("3 степень должена сократиться.");
+        solverPolynomial.getSolution();
+
+        System.out.println("-------TEST13_check_last------");
+        solverPolynomial = new SolverPolynomial("5 * X^0 + 1 * X^15 = 4 * X^0 + 2 * X^1 + 2 * X^15");
+        solverPolynomial.printReducedForm();
+        System.out.println("15 степень не должена сократиться.");
         solverPolynomial.getSolution();
     }
 
