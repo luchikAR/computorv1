@@ -17,7 +17,10 @@ public class SolverPolynomial {
     private Double value_degree0;
     private Double value_degree1;
     private Double value_degree2;
+
+    boolean initSuccess;
     SolverPolynomial() {
+        initSuccess = false;
     }
 
     SolverPolynomial(String inputString) {
@@ -26,6 +29,7 @@ public class SolverPolynomial {
 
     public void init(String inputString) {
         value_degree0 = value_degree1 = value_degree2 = ZERO;
+        initSuccess = false;
         String[] splitArgs = inputString.split(" ");
         Double multiplier = 1.0;
         boolean isRightSide = false;
@@ -35,7 +39,7 @@ public class SolverPolynomial {
                 multiplier = multiplier.equals(-1.0) ? Double.parseDouble(arg) * -1 : Double.parseDouble(arg);
             } else if("=".equals(arg)) {
                 if (isRightSide)
-                    System.out.printf("Не верное выражение: '='");
+                    printError("Не верное выражение: '='");
                 isRightSide = true;
             } else if("-".equals(arg)) {
                 multiplier *= -1;
@@ -44,7 +48,7 @@ public class SolverPolynomial {
                 try {
                     Integer degree = arg.isEmpty() ? 1 : Integer.parseInt(arg);
                     if (degree.doubleValue() > 2) {
-                        System.out.println("Polynomial degree: " + degree + ".\nThe polynomial degree is strictly greater than 2, I can't solve.");
+                        printError("Polynomial degree: " + degree + ".\nThe polynomial degree is strictly greater than 2, I can't solve.");
                         return;
                     }
                     if (isRightSide)
@@ -52,63 +56,81 @@ public class SolverPolynomial {
                     addValueDegree(degree, multiplier);
                     multiplier = 1.0;
                 } catch (NumberFormatException e) {
-                    System.out.println("Не верный формат степени: " + arg + ".\nОжидается X^[0-2]");
+                    printError("Не верный формат степени: " + arg + ".\nОжидается X^[0-2]");
                     return;
                 }
             }
         }
+        initSuccess = true;
     }
 
     public void printReducedForm() {
+        if (!initSuccess) {
+            printError("Было задано не верное уравнение. I can't print reduced form.");
+            return;
+        }
+
         boolean isNeedPrintPlus = false;
+        String reducedForm = "";
+        int degree = maxDegree();
 
         System.out.print(ANSI_YELLOW + "Reduced form: ");
-        if (maxDegree() == -1) {
-            System.out.println("0 ");
+        if (degree == -1) {
+            reducedForm += "0 ";
         }
         if (!value_degree0.equals(ZERO)) {
-            System.out.print(decimalFormat.format(value_degree0) + " * X^0 ");
+            reducedForm += decimalFormat.format(value_degree0) + " * X^0 ";
             isNeedPrintPlus = true;
         }
 
         if (value_degree1 > ZERO) {
             if (isNeedPrintPlus)
-                System.out.print("+ " + decimalFormat.format(value_degree1) + " * X^1 ");
+                reducedForm += "+ " + decimalFormat.format(value_degree1) + " * X^1 ";
             else
-                System.out.print(decimalFormat.format(value_degree1) + " * X^1 ");
+                reducedForm += decimalFormat.format(value_degree1) + " * X^1 ";
             isNeedPrintPlus = true;
         } else if (value_degree1 < ZERO) {
             if (isNeedPrintPlus)
-                System.out.print("- " + decimalFormat.format(value_degree1 * -1) + " * X^1 ");
+                reducedForm += "- " + decimalFormat.format(value_degree1 * -1) + " * X^1 ";
             else
-                System.out.print(decimalFormat.format(value_degree1) + " * X^1 ");
+                reducedForm += decimalFormat.format(value_degree1) + " * X^1 ";
             isNeedPrintPlus = true;
         }
 
         if (value_degree2 > ZERO) {
             if (isNeedPrintPlus)
-                System.out.print("+ " + decimalFormat.format(value_degree2) + " * X^2 ");
+                reducedForm += "+ " + decimalFormat.format(value_degree2) + " * X^2 ";
             else
-                System.out.print(decimalFormat.format(value_degree2) + " * X^2 ");
+                reducedForm += decimalFormat.format(value_degree2) + " * X^2 ";
             isNeedPrintPlus = true;
         } else if (value_degree2 < ZERO) {
             if (isNeedPrintPlus)
-                System.out.print("- " + decimalFormat.format(value_degree2 * -1) + " * X^2 ");
+                reducedForm += "- " + decimalFormat.format(value_degree2 * -1) + " * X^2 ";
             else
-                System.out.print(decimalFormat.format(value_degree2 * -1) + " * X^2 ");
+                reducedForm += decimalFormat.format(value_degree2 * -1) + " * X^2 ";
             isNeedPrintPlus = true;
         }
-        System.out.println("= 0");
-        int degree = maxDegree();
+        reducedForm += "= 0";
+        System.out.println(reducedForm);
         degree = degree == -1 ? 0 : degree;
         System.out.println("Polynomial degree: " + degree + ANSI_RESET);
     }
 
+    private void printError(String message) {
+        System.out.println(ANSI_RED + message + ANSI_RESET);
+    }
+
     public void getSolution() {
+        if (!initSuccess) {
+            printError("Было задано не верное уравнение. I can't solve.");
+            return;
+        }
 
         System.out.print(ANSI_GREEN);
         if (value_degree0.equals(0.0) && value_degree1.equals(0.0) && value_degree2.equals(0.0)) {
             System.out.println("Any real number is a solution!");
+        } else if (value_degree1.equals(0.0) && value_degree2.equals(0.0)) {
+            System.out.println("there is no solution!");
         } else if (value_degree2.equals(0.0))
             linearEquation();
         else
@@ -130,6 +152,7 @@ public class SolverPolynomial {
             System.out.println("Так как дискриминант меньше нуля, то уравнение не имеет действительных решений.");
         } else if(sqrt == 0.0) {
             double answer1 = ( -value_degree1 ) / (2 * value_degree2);
+            System.out.println("Дискриминант равен нулю, следовательно существует только одно решение:");
             System.out.println(decimalFormat.format(answer1));
         } else if (sqrt > 0) {
             System.out.println("Discriminant is strictly positive, the two solutions are:");
@@ -144,7 +167,7 @@ public class SolverPolynomial {
         double y = (1+x)/2; // first approximation
         double z = 0;
         if (x <= 0)
-            return 0;  // if negative number maybe throw exception?
+            return x;
         while (fabs(y-z) > 0.00000000001) { // desired precision
             z = y;
             y = (y + x/y) / 2;
@@ -165,7 +188,7 @@ public class SolverPolynomial {
         if (!value_degree1.equals(0.0))
             return 1;
         if (!value_degree0.equals(0.0))
-            return 1;
+            return 0;
         return -1;
     }
 
