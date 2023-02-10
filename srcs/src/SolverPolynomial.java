@@ -7,9 +7,13 @@ public class SolverPolynomial {
 //    private ArrayList<Integer> elements_degree2 = new ArrayList<Integer>();
 //    private ArrayList<Integer> elements_degree1 = new ArrayList<Integer>();
 //    private ArrayList<Integer> elements_degree0 = new ArrayList<Integer>();
-
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
     private static final double ZERO = 0.0;
-    DecimalFormat decimalFormat = new DecimalFormat("#.#");
+    DecimalFormat decimalFormat = new DecimalFormat("#.######");
     private Double value_degree0;
     private Double value_degree1;
     private Double value_degree2;
@@ -58,9 +62,9 @@ public class SolverPolynomial {
     public void printReducedForm() {
         boolean isNeedPrintPlus = false;
 
-        System.out.print("Reduced form: ");
+        System.out.print(ANSI_YELLOW + "Reduced form: ");
         if (maxDegree() == -1) {
-            System.out.println("Не верное выражение: отсутствует степень"); // не точно. может решение - любое?
+            System.out.println("0 ");
         }
         if (!value_degree0.equals(ZERO)) {
             System.out.print(decimalFormat.format(value_degree0) + " * X^0 ");
@@ -95,25 +99,44 @@ public class SolverPolynomial {
             isNeedPrintPlus = true;
         }
         System.out.println("= 0");
-        System.out.println("Polynomial degree: " + maxDegree());
+        int degree = maxDegree();
+        degree = degree == -1 ? 0 : degree;
+        System.out.println("Polynomial degree: " + degree + ANSI_RESET);
     }
 
     public void getSolution() {
+
+        System.out.print(ANSI_GREEN);
+        if (value_degree0.equals(0.0) && value_degree1.equals(0.0) && value_degree2.equals(0.0)) {
+            System.out.println("Any real number is a solution!");
+        } else if (value_degree2.equals(0.0))
+            linearEquation();
+        else
+            quadraticEquation();
+        System.out.print(ANSI_RESET);
+    }
+
+    private void linearEquation() {
+        double answer = (-1 * value_degree0) / value_degree1;
+        System.out.println("The solution is:");
+        System.out.println(decimalFormat.format(answer));
+    }
+
+    private void quadraticEquation() {
         double d = value_degree1 * value_degree1 - (4 * value_degree0 * value_degree2);
 
         double sqrt = sqrt(d);
-//        System.out.println("корень из " + d + " = " + sqrt);
         if (sqrt < 0) {
             System.out.println("Так как дискриминант меньше нуля, то уравнение не имеет действительных решений.");
-        }
-        else if (sqrt > 0) {
-            System.out.println("Так как дискриминант больше нуля то, квадратное уравнение имеет два действительных корня:");
-            double answer1 = ( -value_degree1 - sqrt ) / 2 * value_degree2;
-            double answer2 = ( -value_degree1 + sqrt ) / 2 * value_degree2;
-//            System.out.println("x1 = " + decimalFormat.format(answer1));
-//            System.out.println("x2 = " + decimalFormat.format(answer2));
-            System.out.println("x1 = " + answer1);
-            System.out.println("x2 = " + answer2);
+        } else if(sqrt == 0.0) {
+            double answer1 = ( -value_degree1 ) / (2 * value_degree2);
+            System.out.println(decimalFormat.format(answer1));
+        } else if (sqrt > 0) {
+            System.out.println("Discriminant is strictly positive, the two solutions are:");
+            double answer1 = ( -value_degree1 - sqrt ) / (2 * value_degree2);
+            double answer2 = ( -value_degree1 + sqrt ) / (2 * value_degree2);
+            System.out.println(decimalFormat.format(answer1));
+            System.out.println(decimalFormat.format(answer2));
         }
     }
 
@@ -137,12 +160,12 @@ public class SolverPolynomial {
     }
 
     private int maxDegree() {
-        if (!value_degree2.equals(0))
+        if (!value_degree2.equals(0.0))
             return 2;
-        if (!value_degree1.equals(0))
+        if (!value_degree1.equals(0.0))
             return 1;
-        if (!value_degree0.equals(0))
-            return 0;
+        if (!value_degree0.equals(0.0))
+            return 1;
         return -1;
     }
 
