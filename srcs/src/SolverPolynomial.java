@@ -1,5 +1,3 @@
-package src;
-
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,11 +18,16 @@ public class SolverPolynomial {
 
 	boolean initSuccess;
 
-	SolverPolynomial() {
+	public SolverPolynomial() {
 		initSuccess = false;
 	}
 
-	SolverPolynomial(String inputString) {
+	public SolverPolynomial(String inputString) {
+		if (inputString.isEmpty() || inputString.replace(" ", "").isEmpty() ) {
+			initSuccess = false;
+			printError("String is empty.");
+			return;
+		}
 		init(inputString);
 	}
 
@@ -34,10 +37,14 @@ public class SolverPolynomial {
 		String[] splitArgs = inputString.split(" ");
 		Double multiplier = 1.0;
 		boolean isRightSide = false;
+		boolean isTwiceNumber = false;
 
 		for (String arg : splitArgs) {
 			if (isNumeric(arg)) {
+				if (isTwiceNumber)
+					addValueDegree(0, multiplier);
 				multiplier = multiplier.equals(-1.0) ? Double.parseDouble(arg) * -1 : Double.parseDouble(arg);
+				isTwiceNumber = true;
 			} else if ("=".equals(arg)) {
 				if (isRightSide)
 					printError("Не верное выражение: '='");
@@ -52,11 +59,24 @@ public class SolverPolynomial {
 						multiplier *= -1;
 					addValueDegree(degree, multiplier);
 					multiplier = 1.0;
+					isTwiceNumber = false;
 				} catch (NumberFormatException e) {
 					printError("Не верный формат степени: " + arg + ".\nОжидается X^[0-2]");
 					return;
 				}
+			} else if (arg.contains("X")) {
+				Integer degree = 1;
+				if (isRightSide)
+					multiplier *= -1;
+				addValueDegree(degree, multiplier);
+				multiplier = 1.0;
+				isTwiceNumber = false;
 			}
+		}
+		if (isTwiceNumber) {
+			if (isRightSide)
+				multiplier *= -1;
+			addValueDegree(0, multiplier);
 		}
 		for (Map.Entry<Integer, Double> entry : other_degree.entrySet()) {
 			if (!entry.getValue().equals(0.0)) {
@@ -70,7 +90,8 @@ public class SolverPolynomial {
 
 	public void printReducedForm() {
 		if (!initSuccess) {
-			printError("Было задано не верное уравнение. I can't print reduced form.");
+//			System.out.println("Было задано не верное уравнение.");
+//			printError("I can't print reduced form.");
 			return;
 		}
 
@@ -126,7 +147,7 @@ public class SolverPolynomial {
 
 	public void getSolution() {
 		if (!initSuccess) {
-			printError("Было задано не верное уравнение. I can't solve.");
+//			printError("Было задано не верное уравнение. I can't solve.");
 			return;
 		}
 
@@ -143,6 +164,9 @@ public class SolverPolynomial {
 	}
 
 	private void linearEquation() {
+		System.out.println(ANSI_YELLOW + "[step] It is linear equation.");
+		System.out.println("[step] the linear equation has a general form: a = b * X.");
+		System.out.println("[step] the formula for the solution: X = a/b" + ANSI_GREEN);
 		double answer = (-1 * value_degree0) / value_degree1;
 		System.out.println("The solution is:");
 		System.out.println(decimalFormat.format(answer));
@@ -150,12 +174,17 @@ public class SolverPolynomial {
 
 	private void quadraticEquation() {
 		double d = value_degree1 * value_degree1 - (4 * value_degree0 * value_degree2);
+		System.out.println(ANSI_YELLOW + "[step] discriminant = " + d + ANSI_GREEN);
 
 		double sqrt = sqrt(d);
+		if (sqrt >= 0.0)
+			System.out.println(ANSI_YELLOW + "[step] Square root discriminant = " + decimalFormat.format(sqrt) + ANSI_GREEN);
 		if (sqrt < 0) {
 			System.out.println("Так как дискриминант меньше нуля, то уравнение не имеет действительных решений.");
 		} else if (sqrt == 0.0) {
 			double answer1 = (-value_degree1) / (2 * value_degree2);
+			if (answer1 == -0.0)
+				answer1 = 0.0;
 			System.out.println("Дискриминант равен нулю, следовательно существует только одно решение:");
 			System.out.println(decimalFormat.format(answer1));
 		} else if (sqrt > 0) {
